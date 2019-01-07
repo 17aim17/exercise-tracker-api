@@ -6,6 +6,7 @@ const { connect }= require('./db/mongoose')
 const bodyParser = require('body-parser')
 const  {ObjectID} =require('mongodb')
 const { Exercise } = require('./model/Exercise')
+const {User} = require('./model/User')
 const _ =             require('lodash')
 const moment  =   require('moment')
 
@@ -17,7 +18,12 @@ const port  = process.env.PORT || 3000
 app.get('/',(req,res)=>{
   res.status(200).send({Message:"EveryThing is Ok"})
 })
-// Add exercises
+
+/**
+ * 
+ *  Adding Information Routes
+ * 
+ */
 
 // Post route for exercises
 app.post('/api/exercise/' ,(req,res)=>{
@@ -166,6 +172,28 @@ app.patch('/api/exercise/:id',(req,res)=>{
     })
 
 })
+
+/**
+ *  
+ *  USERS ROUTES
+ * 
+ */
+
+app.post('/api/user',(req,res)=>{
+    const userData = _.pick(req.body,['username','password'])
+
+    const user =new User(userData)
+   
+    user.save().then(()=>{
+      return  user.generateAuthToken();
+    }).then((token)=>{
+      res.header('x-auth',token).send({user});
+    })
+    .catch((e)=>{
+     return res.status(400).send(e);
+    })  
+})
+
 
 const isValidDate =(date)=>{
   return moment(date ,"YYYY-MM-DD" ,true).isValid()
