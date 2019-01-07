@@ -27,12 +27,8 @@ app.get('/',(req,res)=>{
  */
 
 // Post route for exercises
-app.post('/api/exercise/' ,(req,res)=>{
-    // const userId = req.body.userId;
-    // if(!ObjectID.isValid(userId)){
-    //   return res.status(404).send(); 
-    // }
-
+app.post('/api/exercise' , authenticate ,(req,res)=>{
+   
     const exercise =_.pick(req.body , [ 'description' ,'duration','date']);
      if(isValidDate(exercise.date)){
        const date =exercise.date;
@@ -40,21 +36,21 @@ app.post('/api/exercise/' ,(req,res)=>{
      }else{
         return res.status(400).send({error:"Date must be Valid and In format (YYYY-MM-DD)"})
      }
-
+      exercise.userId = req.user._id
       const newExercise = new Exercise(exercise)
 
       newExercise.save().then((exercise)=>{
         res.status(200).send({exercise})
-      }).catch((e)=>res.status(400).send(e))
+      }).catch((e)=>res.status(400).send())
 
 })
 
-app.get('/api/exercise/' ,(req,res)=>{
+app.get('/api/exercise' ,authenticate,(req,res)=>{
    const from = req.query.from;
    const to = req.query.to;
    const limit = req.query.limit;
 
-   Exercise.find({}).then((exercises)=>{
+   Exercise.find({userId:req.user._id}).then((exercises)=>{
       let fromArray =[]
       let toArray = [] 
       let resultArray =[]
@@ -106,12 +102,12 @@ app.get('/api/exercise/' ,(req,res)=>{
   
 })
 
-app.get('/api/exercise/:id',(req,res)=>{
+app.get('/api/exercise/:id',authenticate,(req,res)=>{
     const id = req.params.id;
     if(!ObjectID.isValid(id)){
       return res.status(404).send(); 
     }
-    Exercise.findById(id).then((exercise)=>{
+    Exercise.findOne({_id:id ,userId:req.user._id}).then((exercise)=>{
       if(!exercise){
         res.status(400).send();
       }
@@ -122,12 +118,12 @@ app.get('/api/exercise/:id',(req,res)=>{
 
 })
 
-app.delete('/api/exercise/:id',(req,res)=>{
+app.delete('/api/exercise/:id',authenticate,(req,res)=>{
     const id = req.params.id;
     if(!ObjectID.isValid(id)){
       return res.status(404).send(); 
     }
-    Exercise.findOneAndRemove({_id:id}).then((exercise)=>{
+    Exercise.findOneAndDelete({_id:id ,userId:req.user._id}).then((exercise)=>{
       if(!exercise){
         res.status(400).send();
       }
@@ -138,19 +134,18 @@ app.delete('/api/exercise/:id',(req,res)=>{
 
 })
 
-app.patch('/api/exercise/:id',(req,res)=>{
+app.patch('/api/exercise/:id',authenticate,(req,res)=>{
     const id = req.params.id;
     if(!ObjectID.isValid(id)){
       return res.status(404).send(); 
     }
     let body = _.pick(req.body,[ 'description' ,'duration','date'])
-    Exercise.findOne({_id:id}).then((exercise)=>{
+    Exercise.findOne({_id:id ,userId:req.user._id}).then((exercise)=>{
        if(!exercise){
          res.status(400).send()
        }
       let doc =  _.pick(exercise,[ 'description' ,'duration','date'])
-      console.log(doc);
-      
+          
        if( !(_.isEmpty(body.description)) ){ doc.description =body.description}
        if( !(_.isEmpty(body.duration.toString())) ){ doc.duration =body.duration}
        if( !(_.isEmpty(body.date)) ){
@@ -162,7 +157,7 @@ app.patch('/api/exercise/:id',(req,res)=>{
         }
         return doc
     }).then((exercise)=>{
-      Exercise.findOneAndUpdate({_id:id}, {$set:exercise} ,{new:true}).then((doc)=>{
+      Exercise.findOneAndUpdate({_id:id,userId:req.user._id}, {$set:exercise} ,{new:true}).then((doc)=>{
           if(!doc) {
               return res.status(404).send()
           }
@@ -210,6 +205,13 @@ app.post('/api/user/login' , (req,res)=>{
   })
 })
 
+app.delete('/api/user/me/token',authenticate,(req,res)=>{
+   req.user.removeToken(req.token).then(()=>{
+     res.status(200).send({msg:"Logged you out"})
+   }).catch((e)=>{
+      res.status(400).send()
+   })
+})
 
 
 const isValidDate =(date)=>{

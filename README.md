@@ -1,6 +1,25 @@
 Exercise Tracker
 =================
     
+User Sign Up  {Enter username ,password}
+----------------------------------------------------------------------
+                POST /api/user/
+
+
+Get your user info  ----------------------------------------------------------------------
+                GET /api/user/me
+
+
+User login {Enter username ,password}
+----------------------------------------------------------------------
+                POST api/user/login
+
+
+User Logout
+----------------------------------------------------------------------
+                DELETE api/users/me/token
+
+
 Add exercises {Enter description ,duration ,date(YYYY-MM-DD)}
 ----------------------------------------------------------------------
                 POST /api/exercise/

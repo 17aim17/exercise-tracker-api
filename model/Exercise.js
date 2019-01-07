@@ -14,6 +14,10 @@ const ExerciseSchema = new mongoose.Schema({
         date:{
             type: Number,
             require:true
+        },
+        userId:{
+            type:mongoose.Schema.Types.ObjectId,
+            required:true
         }
 })
 
