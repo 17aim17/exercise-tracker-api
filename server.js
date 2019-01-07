@@ -9,6 +9,7 @@ const { Exercise } = require('./model/Exercise')
 const {User} = require('./model/User')
 const _ =             require('lodash')
 const moment  =   require('moment')
+const {authenticate} =require('./middleware/authenticate')
 
 app.use(express.static('public'))
 app.use(bodyParser.json())
@@ -179,7 +180,7 @@ app.patch('/api/exercise/:id',(req,res)=>{
  * 
  */
 
-app.post('/api/user',(req,res)=>{
+app.post('/api/user' ,(req,res)=>{
     const userData = _.pick(req.body,['username','password'])
 
     const user =new User(userData)
@@ -193,6 +194,11 @@ app.post('/api/user',(req,res)=>{
      return res.status(400).send(e);
     })  
 })
+
+app.get('/api/user/me', authenticate , (req,res)=>{
+    res.send(req.user)
+})
+
 
 
 const isValidDate =(date)=>{
