@@ -199,6 +199,17 @@ app.get('/api/user/me', authenticate , (req,res)=>{
     res.send(req.user)
 })
 
+app.post('/api/user/login' , (req,res)=>{
+  const userData = _.pick(req.body,['username','password'])
+  User.findByCredentials(userData.username ,userData.password).then((user)=>{
+    return user.generateAuthToken().then((token)=>{
+      res.header('x-auth',token).send(user)
+    })
+  }).catch((e)=>{
+    res.status(400).send()
+  })
+})
+
 
 
 const isValidDate =(date)=>{
